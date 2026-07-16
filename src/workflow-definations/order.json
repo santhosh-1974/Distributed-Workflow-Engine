@@ -1,0 +1,22 @@
+{
+  "id": "order",
+  "name": "Order Processing",
+  "steps": [
+    {
+      "id": "inventory",
+      "worker": "inventory"
+    },
+    {
+      "id": "payment",
+      "worker": "payment"
+    },
+    {
+      "id": "email",
+      "worker": "email"
+    },
+    {
+      "id": "invoice",
+      "worker": "invoice"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "id": "onboarding",
+  "name": "Employee Onboarding",
+  "steps": [
+    {
+      "id": "create-account",
+      "worker": "account"
+    },
+    {
+      "id": "assign-laptop",
+      "worker": "it"
+    },
+    {
+      "id": "send-welcome-email",
+      "worker": "email"
+    }
+  ]
+}

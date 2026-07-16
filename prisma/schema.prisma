@@ -1,13 +1,80 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum ExecutionStatus {
+  CREATED
+  RUNNING
+  WAITING
+  FAILED
+  COMPLETED
+  }
+
+enum TaskStatus {
+  PENDING
+  RUNNING
+  FAILED
+  COMPLETED
+}
+model Workflow {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  definition  Json
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  executions  Execution[]
+  @@map("workflows")
+}
+
+model Execution {
+  id            String            @id @default(uuid())
+  workflowId    String
+  status        ExecutionStatus   @default(CREATED)
+  currentStep   String?
+  startedAt     DateTime          @default(now())
+  completedAt   DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  workflow Workflow @relation(fields: [workflowId],references: [id],onDelete: Cascade)
+
+  tasks  Task[]
+  events Event[]
+  
+  @@index([workflowId])
+  @@index([status])
+  @@map("executions")
+}
+
+model Task {
+  id            String        @id @default(uuid())
+  executionId   String
+  stepName      String
+  worker        String
+  status        TaskStatus    @default(PENDING)
+  retryCount    Int           @default(0)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  execution      Execution    @relation(fields: [executionId],references: [id],onDelete: Cascade)
+
+  @@index([executionId])
+  @@index([status])
+  @@map("tasks")
+}
+
+model Event {
+  id            String      @id @default(uuid())
+  executionId   String
+  event         String
+  metadata      Json?
+  timestamp     DateTime    @default(now())
+  execution     Execution  @relation(fields: [executionId],references: [id],onDelete: Cascade)
+
+  @@index([executionId])
+  @@map("events")
 }
