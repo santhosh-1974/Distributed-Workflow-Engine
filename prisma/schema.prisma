@@ -34,7 +34,7 @@ model Execution {
   id            String            @id @default(uuid())
   workflowId    String
   status        ExecutionStatus   @default(CREATED)
-  currentStep   String?
+  currentStep   Int               @default(0)
   startedAt     DateTime          @default(now())
   completedAt   DateTime?
   createdAt     DateTime          @default(now())

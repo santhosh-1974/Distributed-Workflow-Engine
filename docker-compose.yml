@@ -20,7 +20,9 @@ services:
       - .:/app
       - /app/node_modules
 
-    command: npm run dev
+    # The bind mount provides source code at runtime, so generate Prisma Client
+    # in the container's node_modules volume before starting the watcher.
+    command: sh -c "npm run prisma:generate && npm run dev"
 
   postgres:
     image: postgres:17-alpine

@@ -7,14 +7,11 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-
     "test": "vitest run",
     "test:watch": "vitest",
-
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
@@ -23,8 +20,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "bullmq": "^5.80.2",
+    "bullmq": "^5.80.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "ioredis": "^5.11.1",

@@ -1,0 +1,16 @@
+import { queues } from "../queues//workflow.queue";
+
+type DispatchTaskInput = {
+    worker: keyof typeof queues;
+    stepId: string;
+    executionId: string;
+    taskId: string;
+};
+
+export async function dispatchTask({worker,stepId,executionId,taskId}:DispatchTaskInput) {
+    const queue = queues[worker];
+    await queue.add(stepId, {
+        executionId,
+        taskId
+    });
+}
