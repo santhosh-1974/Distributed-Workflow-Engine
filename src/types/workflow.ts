@@ -9,8 +9,3 @@ export interface WorkflowDefinition {
   name: string;
   steps: WorkflowStep[];
 }
-
-export interface workerHandlerInput{
-  executionId: string,
-  taskId: string
-}

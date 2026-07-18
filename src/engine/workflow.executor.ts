@@ -4,13 +4,14 @@ import {updateExecution,getExecutionById} from "../db/repositories/execution.rep
 import { getWorkflowById } from "../db/repositories/workflow.repository.js";
 import { dispatchTask } from "./task.dispatcher.js";
 
-export async function executeWorkflow(executionId: string) {
+export async function executeWorkflow(executionId: string){
     const execution = await getExecutionById(executionId);
     if(!execution)throw new Error("Execution not found.");
 
     const workflow = await getWorkflowById(execution.workflowId);
     if(!workflow)throw new Error("Workflow not found.");
 
+    console.log(`Executing workflow: ${executionId}`);
     if(execution.status===ExecutionStatus.CREATED) {
         await updateExecution(execution.id, {
             status: ExecutionStatus.RUNNING
@@ -37,7 +38,7 @@ export async function executeWorkflow(executionId: string) {
         stepName: step.id,
         worker: step.worker
     });
-    
+    console.log(`Dispatching step: ${step.id}`);
     await dispatchTask({
         worker: step.worker,
         stepId: step.id,

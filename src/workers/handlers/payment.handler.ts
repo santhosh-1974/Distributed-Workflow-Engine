@@ -1,10 +1,30 @@
-export async function paymentHandler(data: {executionId: string,taskId: string}){
-    console.log("Charging payment...");
-    console.log(data);
+import { TaskStatus } from "@prisma/client";
 
+import { updateTask } from "../../db/repositories/task.repository.js";
+import { updateExecution } from "../../db/repositories/execution.repository.js";
+import { executeWorkflow } from "../../engine/workflow.executor.js";
+
+type PaymentTask = {
+    taskId: string;
+    executionId: string;
+};
+
+export async function paymentHandler({taskId,executionId}:PaymentTask) {
+    await updateTask(taskId, {
+        status: TaskStatus.RUNNING
+    });
+    console.log("Charging payment...");
+
+    // Simulate payment gateway
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    return {
-        success: true
-    };
+    await updateTask(taskId, {
+        status: TaskStatus.COMPLETED
+    });
+    await updateExecution(executionId, {
+        currentStep: {
+            increment: 1
+        }
+    });
+    await executeWorkflow(executionId);
 }

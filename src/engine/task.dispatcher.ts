@@ -8,6 +8,7 @@ type DispatchTaskInput = {
 };
 
 export async function dispatchTask({worker,stepId,executionId,taskId}:DispatchTaskInput) {
+    console.log(`Adding job to ${worker} queue`);
     const queue = queues[worker];
     await queue.add(stepId, {
         executionId,

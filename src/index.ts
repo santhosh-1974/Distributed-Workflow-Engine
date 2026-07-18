@@ -1,4 +1,5 @@
 import "./server.js";
+import "./workers/index"
 
 import { config } from "./config/env.js";
 import { logger } from "./utils/logger.js";
