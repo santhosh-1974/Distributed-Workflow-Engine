@@ -4,19 +4,23 @@
   "steps": [
     {
       "id": "inventory",
-      "worker": "inventory"
+      "worker": "inventory",
+      "compensation": "release-inventory"
     },
     {
       "id": "payment",
-      "worker": "payment"
-    },
-    {
-      "id": "email",
-      "worker": "email"
+      "worker": "payment",
+      "compensation": "refund-payment"
     },
     {
       "id": "invoice",
-      "worker": "invoice"
+      "worker": "invoice",
+      "compensation": "delete-invoice"
+    },
+    {
+      "id": "email",
+      "worker": "email",
+      "compensation": "cancel-email"
     }
   ]
 }

@@ -20,6 +20,28 @@ enum TaskStatus {
   FAILED
   COMPLETED
 }
+
+enum EventType {
+  EXECUTION_CREATED
+  EXECUTION_STARTED
+  EXECUTION_COMPLETED
+  EXECUTION_FAILED
+
+  TASK_CREATED
+  TASK_STARTED
+  TASK_COMPLETED
+  TASK_FAILED
+  TASK_RETRY
+
+  SAGA_STARTED
+  SAGA_COMPLETED
+  SAGA_FAILED
+
+  COMPENSATION_STARTED
+  COMPENSATION_COMPLETED
+  COMPENSATION_FAILED
+}
+
 model Workflow {
   id          String      @id @default(uuid())
   name        String      @unique
@@ -70,7 +92,7 @@ model Task {
 model Event {
   id            String      @id @default(uuid())
   executionId   String
-  event         String
+  event         EventType
   metadata      Json?
   timestamp     DateTime    @default(now())
   execution     Execution  @relation(fields: [executionId],references: [id],onDelete: Cascade)
