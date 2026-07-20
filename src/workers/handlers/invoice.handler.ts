@@ -1,4 +1,5 @@
-import { TaskStatus } from "@prisma/client";
+import { EventType, TaskStatus } from "@prisma/client";
+import { createEvent } from "../../db/repositories/event.repository.js";
 
 import { updateTask } from "../../db/repositories/task.repository.js";
 import { updateExecution } from "../../db/repositories/execution.repository.js";
@@ -13,6 +14,11 @@ export async function invoiceHandler({taskId,executionId}:InvoiceTask) {
     await updateTask(taskId, {
         status: TaskStatus.RUNNING
     });
+    await createEvent({
+        execution: { connect: { id: executionId } },
+        event: EventType.TASK_STARTED,
+        metadata: { executionId, taskId, worker: "invoice" }
+    });
     console.log("Generating invoice...");
 
     // Simulate invoice generation
@@ -20,6 +26,11 @@ export async function invoiceHandler({taskId,executionId}:InvoiceTask) {
 
     await updateTask(taskId, {
         status: TaskStatus.COMPLETED
+    });
+    await createEvent({
+        execution: { connect: { id: executionId } },
+        event: EventType.TASK_COMPLETED,
+        metadata: { executionId, taskId, worker: "invoice" }
     });
     await updateExecution(executionId, {
         currentStep: {

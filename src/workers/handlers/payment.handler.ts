@@ -1,4 +1,5 @@
-import { TaskStatus } from "@prisma/client";
+import { EventType, TaskStatus } from "@prisma/client";
+import { createEvent } from "../../db/repositories/event.repository.js";
 
 import { updateTask } from "../../db/repositories/task.repository.js";
 import { updateExecution } from "../../db/repositories/execution.repository.js";
@@ -13,6 +14,11 @@ export async function paymentHandler({taskId,executionId}:PaymentTask) {
     await updateTask(taskId, {
         status: TaskStatus.RUNNING
     });
+    await createEvent({
+        execution: { connect: { id: executionId } },
+        event: EventType.TASK_STARTED,
+        metadata: { executionId, taskId, worker: "payment" }
+    });
     console.log("Charging payment...");
 
     // Simulate payment gateway
@@ -20,6 +26,11 @@ export async function paymentHandler({taskId,executionId}:PaymentTask) {
 
     await updateTask(taskId, {
         status: TaskStatus.COMPLETED
+    });
+    await createEvent({
+        execution: { connect: { id: executionId } },
+        event: EventType.TASK_COMPLETED,
+        metadata: { executionId, taskId, worker: "payment" }
     });
     await updateExecution(executionId, {
         currentStep: {
