@@ -1,5 +1,5 @@
 import { db } from "../prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma ,ExecutionStatus} from "@prisma/client";
 
 export async function createExecution(data: Prisma.ExecutionCreateInput){
     return db.execution.create({ data });
@@ -14,5 +14,5 @@ export async function updateExecution(id: string,data: Prisma.ExecutionUpdateInp
 }
 
 export async function getRunningExecutions() {  
-    return db.execution.findMany({where: {status: "RUNNING"}});
+    return db.execution.findMany({where: {status:ExecutionStatus.RUNNING}});
 }

@@ -10,11 +10,52 @@ import { runSaga } from "../engine/saga.executors.js";
 
 import { updateExecution } from "../db/repositories/execution.repository.js";
 import { updateTask } from "../db/repositories/task.repository.js";
+import { executeWorkflow } from "../engine/workflow.executor.js";
 
 export const emailWorker = new Worker(
     QUEUE_NAMES.EMAIL,
     async job => {
-        return emailHandler(job.data);
+
+        const { taskId, executionId } = job.data;
+
+        await updateTask(taskId, {
+            status: TaskStatus.RUNNING
+        });
+
+        await createEvent({
+            execution: { connect: { id: executionId } },
+            event: EventType.TASK_STARTED,
+            metadata: {
+                worker: "email",
+                taskId
+            }
+        });
+
+        // Execute business logic
+        await emailHandler();
+
+        // Task completed
+        await updateTask(taskId, {
+            status: TaskStatus.COMPLETED
+        });
+
+        await createEvent({
+            execution: { connect: { id: executionId } },
+            event: EventType.TASK_COMPLETED,
+            metadata: {
+                worker: "email",
+                taskId
+            }
+        });
+
+        // Move workflow forward
+        await updateExecution(executionId, {
+            currentStep: {
+                increment: 1
+            }
+        });
+
+        await executeWorkflow(executionId);
     },
     {
         connection: bullConnection
@@ -32,9 +73,7 @@ emailWorker.on("failed", async (job, error) => {
         return;
     }
 
-    await updateTask(job.data.taskId, {
-        status: TaskStatus.FAILED
-    });
+    await updateTask(job.data.taskId, {status: TaskStatus.FAILED});
     await createEvent({ execution: { connect: { id: job.data.executionId } }, event: EventType.TASK_FAILED, metadata: { executionId: job.data.executionId, taskId: job.data.taskId, worker: "email", error: error.message, attemptsMade: job.attemptsMade, maxAttempts: job.opts.attempts ?? 1, reason: "retries_exhausted" } });
 
     await updateExecution(job.data.executionId, {

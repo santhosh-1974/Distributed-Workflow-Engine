@@ -17,8 +17,9 @@ enum ExecutionStatus {
 enum TaskStatus {
   PENDING
   RUNNING
-  FAILED
+  QUEUED
   COMPLETED
+  FAILED
 }
 
 enum EventType {

@@ -9,11 +9,37 @@ import { createEvent } from "../db/repositories/event.repository.js";
 import { runSaga } from "../engine/saga.executors.js";
 import { updateExecution } from "../db/repositories/execution.repository.js";
 import { updateTask } from "../db/repositories/task.repository.js";
+import { executeWorkflow } from "../engine/workflow.executor.js";
 
 export const invoiceWorker = new Worker(
     QUEUE_NAMES.INVOICE,
     async job => {
-        return invoiceHandler(job.data);
+        const { taskId, executionId } = job.data;
+
+        await updateTask(taskId, {
+            status: TaskStatus.RUNNING
+        });
+        await createEvent({
+            execution: { connect: { id: executionId } },
+            event: EventType.TASK_STARTED,
+            metadata: { executionId, taskId, worker: "invoice" }
+        });
+        return invoiceHandler();
+
+        await updateTask(taskId, {
+                status: TaskStatus.COMPLETED
+            });
+            await createEvent({
+                execution: { connect: { id: executionId } },
+                event: EventType.TASK_COMPLETED,
+                metadata: { executionId, taskId, worker: "invoice" }
+            });
+            await updateExecution(executionId, {
+                currentStep: {
+                    increment: 1
+                }
+            });
+            await executeWorkflow(executionId);
     },
     {
         connection: bullConnection

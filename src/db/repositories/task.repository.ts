@@ -12,3 +12,15 @@ export async function updateTask(id: string,data: Prisma.TaskUpdateInput){
 export async function getTasksByExecutionId(executionId: string){
   return db.task.findMany({where:{executionId} , orderBy:{createdAt:"asc"}});
 }
+
+export async function getTaskByExecutionAndStep(executionId: string,stepName: string){
+    return db.task.findFirst({
+        where: {
+            executionId,
+            stepName
+        },
+        orderBy: {
+            createdAt: "desc"
+        }
+    });
+}

@@ -10,13 +10,40 @@ import { runSaga } from "../engine/saga.executors.js";
 
 import { updateExecution } from "../db/repositories/execution.repository.js";
 import { updateTask } from "../db/repositories/task.repository.js";
+import { executeWorkflow } from "../engine/workflow.executor.js";
 
 
 export const inventoryWorker = new Worker(
     QUEUE_NAMES.INVENTORY,
     async job => {
         console.log(`Inventory Worker received ${job.id}`);
-        return inventoryHandler(job.data);
+        const { taskId, executionId } = job.data;
+        console.log("Inventory Started");
+        await updateTask(taskId, {
+                status: TaskStatus.RUNNING
+        });
+        await createEvent({
+            execution: { connect: { id: executionId } },
+            event: EventType.TASK_STARTED,
+            metadata: { executionId, taskId, worker: "inventory" }
+        });
+        
+        return inventoryHandler();
+        await updateTask(taskId, {
+                status: TaskStatus.COMPLETED
+            });
+            await createEvent({
+                execution: { connect: { id: executionId } },
+                event: EventType.TASK_COMPLETED,
+                metadata: { executionId, taskId, worker: "inventory" }
+            });
+            await updateExecution(executionId, {
+                currentStep: {
+                    increment: 1
+                }
+            });
+            console.log("Inventory Completed");
+            await executeWorkflow(executionId);
     },
     {
         connection: bullConnection

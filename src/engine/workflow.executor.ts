@@ -1,25 +1,25 @@
-import { EventType, ExecutionStatus } from "@prisma/client";
+import { EventType, ExecutionStatus, TaskStatus } from "@prisma/client";
 import { createEvent } from "../db/repositories/event.repository.js";
-import { createTask } from "../db/repositories/task.repository.js";
-import {updateExecution,getExecutionById} from "../db/repositories/execution.repository.js";
+import { createTask, getTaskByExecutionAndStep,updateTask } from "../db/repositories/task.repository.js"; 
+import { updateExecution, getExecutionById } from "../db/repositories/execution.repository.js";
 import { getWorkflowById } from "../db/repositories/workflow.repository.js";
-import { dispatchTask } from "./task.dispatcher.js";
+import { dispatchTask} from "./task.dispatcher.js";
 
-export async function executeWorkflow(executionId: string){
+export async function executeWorkflow(executionId: string) {
     const execution = await getExecutionById(executionId);
-    if(!execution)throw new Error("Execution not found.");
+    if (!execution) throw new Error("Execution not found.");
 
     const workflow = await getWorkflowById(execution.workflowId);
-    if(!workflow)throw new Error("Workflow not found.");
+    if (!workflow) throw new Error("Workflow not found.");
 
     console.log(`Executing workflow: ${executionId}`);
-    if(execution.status===ExecutionStatus.CREATED) {
+    if (execution.status === ExecutionStatus.CREATED) {
         await updateExecution(execution.id, {
             status: ExecutionStatus.RUNNING
         });
         await createEvent({
             execution: { connect: { id: execution.id } },
-            event: EventType.EXECUTION_STARTED,
+            event: EventType.EXECUTION_STARTED, 
             metadata: {
                 workflowId: execution.workflowId,
                 executionId: execution.id,
@@ -47,6 +47,42 @@ export async function executeWorkflow(executionId: string){
         });
         return;
     }
+    const existingTask = await getTaskByExecutionAndStep(
+        execution.id,
+        step.id
+    );
+
+    if (existingTask) {
+        switch (existingTask.status) {
+            case TaskStatus.PENDING:
+                await dispatchTask({
+                    worker: step.worker,
+                    stepId: step.id,
+                    executionId: execution.id,
+                    taskId: existingTask.id
+                });
+
+                await updateTask(existingTask.id, {
+                    status: TaskStatus.QUEUED
+                });
+
+                return;
+
+            case TaskStatus.QUEUED:
+            case TaskStatus.RUNNING:
+            case TaskStatus.FAILED:
+                return;
+
+            case TaskStatus.COMPLETED:
+                await updateExecution(execution.id, {
+                    currentStep: {
+                        increment: 1
+                    }
+                });
+
+                return executeWorkflow(execution.id);
+        }
+    }
 
     const task = await createTask({
         execution: {
@@ -57,8 +93,13 @@ export async function executeWorkflow(executionId: string){
         stepName: step.id,
         worker: step.worker
     });
+
     await createEvent({
-        execution: { connect: { id: execution.id } },
+        execution: {
+            connect: {
+                id: execution.id
+            }
+        },
         event: EventType.TASK_CREATED,
         metadata: {
             workflowId: execution.workflowId,
@@ -68,11 +109,16 @@ export async function executeWorkflow(executionId: string){
             worker: step.worker
         }
     });
+
     console.log(`Dispatching step: ${step.id}`);
+
     await dispatchTask({
         worker: step.worker,
         stepId: step.id,
         executionId: execution.id,
         taskId: task.id
+    });
+    await updateTask(task.id, {
+        status: TaskStatus.QUEUED
     });
 }
