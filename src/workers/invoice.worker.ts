@@ -24,7 +24,10 @@ export const invoiceWorker = new Worker(
             event: EventType.TASK_STARTED,
             metadata: { executionId, taskId, worker: "invoice" }
         });
-        return invoiceHandler();
+        await invoiceHandler({
+            executionId,
+            attempt: job.attemptsMade + 1,
+        });
 
         await updateTask(taskId, {
                 status: TaskStatus.COMPLETED

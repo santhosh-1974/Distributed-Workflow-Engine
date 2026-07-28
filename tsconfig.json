@@ -32,10 +32,11 @@
     "sourceMap": true,
     "declaration": true,
 
-    "types": ["node"]
+    "types": ["node", "vitest/globals"]
   },
   "include": [
     "src/**/*",
+    "tests/**/*",
     "prisma.config.ts"
   ],
   "exclude": [

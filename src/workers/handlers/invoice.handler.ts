@@ -1,11 +1,14 @@
+import {
+    assertShouldSucceed,
+    simulateWork,
+} from "../../testing/failure-control.js";
+import { HandlerContext } from "../../testing/handler.types.js";
 
+export async function invoiceHandler(context?: HandlerContext) {
+    if (context) {
+        await assertShouldSucceed("invoice", context);
+    }
 
-export async function invoiceHandler(){
-    
     console.log("Generating invoice...");
-
-    // Simulate invoice generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    
+    await simulateWork();
 }

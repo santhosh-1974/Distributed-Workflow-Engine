@@ -1,9 +1,14 @@
+import {
+    assertShouldSucceed,
+    simulateWork,
+} from "../../testing/failure-control.js";
+import { HandlerContext } from "../../testing/handler.types.js";
 
+export async function paymentHandler(context?: HandlerContext) {
+    if (context) {
+        await assertShouldSucceed("payment", context);
+    }
 
-export async function paymentHandler() {
-    
     console.log("Charging payment...");
-    // Simulate payment gateway
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
+    await simulateWork();
 }

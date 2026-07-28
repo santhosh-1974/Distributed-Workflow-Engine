@@ -28,7 +28,11 @@ export const inventoryWorker = new Worker(
             metadata: { executionId, taskId, worker: "inventory" }
         });
         
-        return inventoryHandler();
+        await inventoryHandler({
+            executionId,
+            attempt: job.attemptsMade + 1,
+        });
+
         await updateTask(taskId, {
                 status: TaskStatus.COMPLETED
             });
