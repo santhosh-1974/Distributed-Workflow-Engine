@@ -1,14 +1,8 @@
-import {
-    assertShouldSucceed,
-    simulateWork,
-} from "../../testing/failure-control.js";
-import { HandlerContext } from "../../testing/handler.types.js";
 
-export async function emailHandler(context?: HandlerContext) {
-    if (context) {
-        await assertShouldSucceed("email", context);
-    }
-
+export async function emailHandler() {
     console.log("Sending confirmation email...");
-    await simulateWork();
+
+    // Simulate sending email
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
 }

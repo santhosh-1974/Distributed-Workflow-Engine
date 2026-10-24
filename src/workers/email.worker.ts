@@ -32,10 +32,7 @@ export const emailWorker = new Worker(
         });
 
         // Execute business logic
-        await emailHandler({
-            executionId,
-            attempt: job.attemptsMade + 1,
-        });
+        await emailHandler();
 
         // Task completed
         await updateTask(taskId, {

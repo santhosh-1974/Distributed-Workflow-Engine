@@ -16,7 +16,7 @@ import { executeWorkflow } from "../engine/workflow.executor.js";
 export const inventoryWorker = new Worker(
     QUEUE_NAMES.INVENTORY,
     async job => {
-        console.log(`Inventory Worker received ${job.id}`);
+        console.log(`Inventory Worker received job ${job.id}`);
         const { taskId, executionId } = job.data;
         console.log("Inventory Started");
         await updateTask(taskId, {
@@ -28,11 +28,7 @@ export const inventoryWorker = new Worker(
             metadata: { executionId, taskId, worker: "inventory" }
         });
         
-        await inventoryHandler({
-            executionId,
-            attempt: job.attemptsMade + 1,
-        });
-
+        await inventoryHandler();
         await updateTask(taskId, {
                 status: TaskStatus.COMPLETED
             });
@@ -72,4 +68,8 @@ inventoryWorker.on("failed", async (job, error) => {
     await createEvent({ execution: { connect: { id: job.data.executionId } }, event: EventType.EXECUTION_FAILED, metadata: { executionId: job.data.executionId, taskId: job.data.taskId, worker: "inventory", error: error.message, attemptsMade: job.attemptsMade, maxAttempts: job.opts.attempts ?? 1, reason: "task_retries_exhausted" } });
     await runSaga(job.data.executionId);
     console.log("Inventory retries exhausted");
+});
+
+inventoryWorker.on("error", error => {
+    console.error("Inventory worker error:", error);
 });

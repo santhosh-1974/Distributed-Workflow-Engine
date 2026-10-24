@@ -27,6 +27,7 @@ export async function executeWorkflow(executionId: string) {
             }
         });
     }
+
     const definition = workflow.definition as any;
     const currentIndex = execution.currentStep ?? 0;
 
@@ -50,6 +51,7 @@ export async function executeWorkflow(executionId: string) {
         execution.id,
         step.id
     );
+
     if (existingTask) {
         switch (existingTask.status) {
             case TaskStatus.PENDING:
@@ -81,6 +83,7 @@ export async function executeWorkflow(executionId: string) {
                 return executeWorkflow(execution.id);
         }
     }
+
     const task = await createTask({
         execution: {
             connect: {
@@ -90,6 +93,7 @@ export async function executeWorkflow(executionId: string) {
         stepName: step.id,
         worker: step.worker
     });
+
     await createEvent({
         execution: {
             connect: {

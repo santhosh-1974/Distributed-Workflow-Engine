@@ -4,7 +4,9 @@ export default defineConfig({
     test: {
         globals: true,
         environment: "node",
-        setupFiles: ["./tests/setup/env.ts", "./tests/reliability/setup.ts"],
+        // Keep database/Redis hooks out of unit tests. They reset shared state
+        // before every test and are only needed by the reliability suite.
+        setupFiles: ["./tests/setup/env.ts"],
         globalSetup: ["./tests/setup/global-setup.ts"],
         globalTeardown: ["./tests/setup/global-teardown.ts"],
         testTimeout: 180_000,

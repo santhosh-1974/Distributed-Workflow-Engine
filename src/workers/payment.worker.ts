@@ -22,11 +22,7 @@ export const paymentWorker = new Worker(
             event: EventType.TASK_STARTED,
             metadata: { executionId, taskId, worker: "payment" }
         });
-        await paymentHandler({
-            executionId,
-            attempt: job.attemptsMade + 1,
-        });
-
+        paymentHandler();
         await updateTask(taskId, {
             status: TaskStatus.COMPLETED
         });

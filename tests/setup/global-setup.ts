@@ -1,8 +1,13 @@
 import { execSync } from "node:child_process";
+import dotenv from "dotenv";
+import path from "node:path";
 
 import pg from "pg";
 
 export default async function globalSetup() {
+    // Vitest's setupFiles run after globalSetup. Load the test environment here
+    // so database creation and migrations use the same URL as the test workers.
+    dotenv.config({ path: path.resolve(process.cwd(), ".env.test"), override: true });
     process.env.NODE_ENV = "test";
 
     const databaseUrl =

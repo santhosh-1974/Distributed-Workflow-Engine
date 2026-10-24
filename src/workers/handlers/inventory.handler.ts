@@ -1,14 +1,6 @@
-import {
-    assertShouldSucceed,
-    simulateWork,
-} from "../../testing/failure-control.js";
-import { HandlerContext } from "../../testing/handler.types.js";
 
-export async function inventoryHandler(context?: HandlerContext) {
-    if (context) {
-        await assertShouldSucceed("inventory", context);
-    }
-
+export async function inventoryHandler(){
     console.log("Reserving inventory...");
-    await simulateWork();
+    // Simulate inventory reservation
+    await new Promise(resolve => setTimeout(resolve, 2000));
 }
